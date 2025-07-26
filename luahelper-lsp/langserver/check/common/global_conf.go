@@ -992,6 +992,11 @@ func (g *GlobalConfig) IsHandleAsLua(strFile string) bool {
 		return true
 	}
 
+	// 把 *.mylua 文件视作 lua 文件
+	if ok := strings.HasSuffix(strFile, ".mylua"); ok {
+		return true
+	}
+
 	// 判断是否为其他的后缀关联到了lua类型
 	if associalStr := g.GetAssocialLua(strFile); associalStr != "" {
 		return true

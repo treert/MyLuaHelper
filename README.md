@@ -1,3 +1,6 @@
+# MyLuaHeler For mylua
+为自己修改的 [mylua](./mylua/ReadMe.md) 提供 IDE 支持。
+
 # LuaHelper Guide
 ![logo](/docs/images/logo.png)
 ## Introduction

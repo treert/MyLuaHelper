@@ -1,38 +1,30 @@
 {
-    "name": "luahelper",
-    "displayName": "Lua",
-    "description": "LuaHelper, Intellisense, Linting, Debugging, Code formatting, High-performance, and more.",
+    "name": "myluahelper",
+    "displayName": "MyLuaHelper",
+    "description": "MyLuaHelper for mylua&lua.",
     "version": "0.2.29",
-    "publisher": "yinfei",
+    "publisher": "onemore",
     "author": {
-        "name": "yinfei",
-        "email": "313745207@qq.com"
+        "name": "onemore",
+        "email": "909413016@qq.com"
     },
     "license": "BSD-3-Clause",
     "keywords": [
+        "my",
         "lua",
-        "lua helper",
-        "luahelper",
-        "lua help",
-        "luahelp",
-        "lua debug",
-        "luadebug",
-        "lua check",
-        "luacheck",
-        "lua format",
-        "luaformat",
-        "emmylua"
+        "mylua",
+        "mylua helper"
     ],
     "icon": "images/luahelper.png",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Tencent/LuaHelper.git"
+        "url": "https://github.com/treert/MyLuaHelper.git"
     },
     "bugs": {
-        "url": "https://github.com/Tencent/LuaHelper.git"
+        "url": "https://github.com/treert/MyLuaHelper.git"
     },
     "engines": {
-        "vscode": "^1.53.0"
+        "vscode": "^1.75.0"
     },
     "categories": [
         "Programming Languages",
@@ -42,7 +34,6 @@
         "Formatters"
     ],
     "activationEvents": [
-        "onLanguage:lua",
         "onWebviewPanel:luahelper-doc",
         "onCommand:extension.luahelper.doc"
     ],
@@ -80,7 +71,7 @@
             {
                 "id": "lua",
                 "extensions": [
-                    ".lua"
+                    ".lua",".mylua"
                 ],
                 "aliases": [
                     "Lua"

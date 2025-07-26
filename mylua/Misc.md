@@ -1,0 +1,2 @@
+- go 版本的 lsp 协议 tsprotocol.go 可能来源
+  - https://github.com/golang/tools/blob/master/gopls/internal/protocol/tsprotocol.go
