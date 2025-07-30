@@ -33,7 +33,7 @@ func (l *LspServer) RunLocalDiagnostices(localpath string) {
 
 	initErr := l.initialCheckProject(ctx, checkFlagList, "local", 0, nil, true, nil, nil)
 	if initErr != nil {
-		log.Error("initial luahelper err: " + initErr.Error())
+		log.Error("initial luahelper err: %v", initErr.Error())
 		return
 	}
 	log.Debug("initial luahelper ok")

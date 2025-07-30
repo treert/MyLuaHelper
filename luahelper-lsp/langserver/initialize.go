@@ -91,7 +91,7 @@ func (l *LspServer) Initialize(ctx context.Context, vs InitializeParams) (lsp.In
 	initErr := l.initialCheckProject(ctx, checkFlagList, initOptions.Client, workspaceFolderNum, vs.WorkspaceFolders,
 		initOptions.LocalRun, initOptions.IgnoreFileOrDir, initOptions.IgnoreFileOrDirError)
 	if initErr != nil {
-		log.Error("initial luahelper err: " + initErr.Error())
+		log.Error("initial luahelper err: %v", initErr.Error())
 		return lsp.InitializeResult{}, initErr
 	}
 	log.Debug("initial luahelper ok")

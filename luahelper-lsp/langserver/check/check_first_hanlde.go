@@ -2,7 +2,6 @@ package check
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"luahelper-lsp/langserver/check/analysis"
 	"luahelper-lsp/langserver/check/common"
@@ -48,8 +47,7 @@ func (allProject *AllProject) analysisFirstLuaFile(f *results.FileStruct, luaFil
 		data, err1 := ioutil.ReadFile(luaFile)
 		f.Contents = data
 		if err1 != nil {
-			errStr := fmt.Sprintf("read file=%s error", luaFile)
-			log.Debug(errStr)
+			log.Debug("read file=%s error", luaFile)
 			handleResult = results.FileHandleReadErr
 			changeFlag = true
 			return

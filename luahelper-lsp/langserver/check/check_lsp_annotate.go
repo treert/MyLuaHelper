@@ -330,7 +330,7 @@ func (a *AllProject) GetFuncReturnTypeByClass(className string, funcName string)
 	}
 
 	funcType, ok := multiType.TypeList[0].(*annotateast.FuncType)
-	if len(funcType.ParamNameList) != len(funcType.ParamTypeList) {
+	if !ok || len(funcType.ParamNameList) != len(funcType.ParamTypeList) {
 		return
 	}
 
@@ -388,7 +388,7 @@ func (a *AllProject) GetFuncParamTypeByClass(className string, funcName string) 
 	}
 
 	funcType, ok := multiType.TypeList[0].(*annotateast.FuncType)
-	if len(funcType.ParamNameList) != len(funcType.ParamTypeList) {
+	if !ok || len(funcType.ParamNameList) != len(funcType.ParamTypeList) {
 		return
 	}
 
@@ -1011,9 +1011,9 @@ func (a *AllProject) getFuncTypeInfoList(strName string, fileName string, lastLi
 		repeatTypeList.List = append(repeatTypeList.List, oneCreate)
 
 		if oneCreate.AliasInfo != nil {
-			aliasInfo := createBestType.AliasInfo
+			aliasInfo := oneCreate.AliasInfo // 原先使用的 createBestType.AliasInfo, 有明显的bug
 			aliasType := aliasInfo.AliasState.AliasType
-			typeListTmp := a.getInlineAllFuncAnnotateType(aliasType, aliasInfo.LuaFile, createBestType.LastLine,
+			typeListTmp := a.getInlineAllFuncAnnotateType(aliasType, aliasInfo.LuaFile, oneCreate.LastLine,
 				repeatTypeList, strMap)
 			typeList = append(typeList, typeListTmp...)
 		}

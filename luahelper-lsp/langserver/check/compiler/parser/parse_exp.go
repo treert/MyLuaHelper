@@ -191,7 +191,7 @@ func (p *Parser) parseNumberExp() ast.Exp {
 			Loc: l.GetNowTokenLoc(),
 		}
 	} else { // todo
-		p.insertParserErr(l.GetPreTokenLoc(), "not a number: "+token)
+		p.insertParserErr(l.GetPreTokenLoc(), "not a number: %v", token)
 		return &ast.FloatExp{
 			Val: 0,
 			//Loc: l.GetNowTokenLoc(),

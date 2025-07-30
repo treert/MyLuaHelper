@@ -352,9 +352,10 @@ func (a *AllProject) GetFuncReturnType(fileName string, lastLine int) (retVec []
 		oneRetVec := []annotateast.Type{}
 		switch subAst := oneReturn.(type) {
 		case *annotateast.MultiType:
-			for _, oneType := range subAst.TypeList {
-				oneRetVec = append(oneRetVec, oneType)
-			}
+			oneRetVec = append(oneRetVec, subAst.TypeList...)
+			// for _, oneType := range subAst.TypeList {
+			// 	oneRetVec = append(oneRetVec, oneType)
+			// }
 		}
 		retVec = append(retVec, oneRetVec)
 	}

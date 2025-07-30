@@ -184,7 +184,6 @@ func (a *AllProject) GetFieldAnnotateType(strFile string, lineForGetAnnotate int
 		a.GetFieldTypeOfClass(classNameOne, retFieldTypeMap)
 	}
 
-	return
 }
 
 func (a *AllProject) GetFieldTypeOfClass(className string, retFieldType map[string][]string) {
@@ -209,5 +208,4 @@ func (a *AllProject) GetFieldTypeOfClass(className string, retFieldType map[stri
 		a.GetFieldTypeOfClass(strParent, retFieldType)
 	}
 
-	return
 }
