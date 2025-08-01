@@ -5,12 +5,12 @@ export class DebugLogger {
     private static Dinfo;
 
     public static init() {
-        DebugLogger.Ainfo = vscode.window.createOutputChannel("Adapter/log");
+        DebugLogger.Ainfo = vscode.window.createOutputChannel("mylua Adapter");
         // DebugLogger.Ainfo.show();
 
-        DebugLogger.Dinfo = vscode.window.createOutputChannel("Debugger/log");
+        DebugLogger.Dinfo = vscode.window.createOutputChannel("mylua Debugger");
         // DebugLogger.Dinfo.show();
-        DebugLogger.Dinfo.appendLine("LuaHelper initializing...");
+        DebugLogger.Dinfo.appendLine("mylua initializing...");
     }
 
     public static DebuggerInfo(str: string) {

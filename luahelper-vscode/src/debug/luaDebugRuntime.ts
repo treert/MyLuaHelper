@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { DataProcessor } from './dataProcessor';
-import { DebugProtocol } from 'vscode-debugprotocol';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { DebugLogger } from '../common/logManager';
-//import { StatusBarManager } from '../common/statusBarManager';
+import { StatusBarManager } from '../common/statusBarManager';
 import { PathManager } from '../common/pathManager';
 
 
@@ -214,7 +214,7 @@ export class LuaDebugRuntime extends EventEmitter {
      * 	刷新显示lua虚拟机内存信息
      */
     public refreshLuaMemoty(luaMemory: string) {
-        //StatusBarManager.refreshLuaMemNum(parseInt(luaMemory));
+        StatusBarManager.refreshLuaMemNum(parseInt(luaMemory));
     }
 
     /**

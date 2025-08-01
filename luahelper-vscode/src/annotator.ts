@@ -28,7 +28,7 @@ export function onDidChangeConfiguration(client: LanguageClient) {
     updateDecorations();
 }
 
-let timeoutToReqAnn: NodeJS.Timer;
+let timeoutToReqAnn: NodeJS.Timeout;
 
 export function requestAnnotators(editor: vscode.TextEditor, client: LanguageClient) {
     let openFlagConfig = vscode.workspace.getConfiguration("luahelper.colors", null).get("Enable");

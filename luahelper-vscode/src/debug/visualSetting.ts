@@ -66,21 +66,13 @@ export class VisualSetting {
     }
 
     // 读取launch.json中的信息，并序列化
-    public static getLaunchData(rootFolderArray){
+    public static getLaunchData(rootFolderArray:string[]){
         let jsonObj = new Object();
 
-        let snippetsPath = Tools.VSCodeExtensionPath + "/res/snippets/snippets.json";
-        let isOpenAnalyzer = true;
-        let snipContent = fs.readFileSync(snippetsPath);
-        if(snipContent.toString().trim() == ''){
-            isOpenAnalyzer = false;
-        }
         jsonObj["command"] = "init_setting";
-        jsonObj["isOpenAnalyzer"] = isOpenAnalyzer;
         jsonObj["configs"] = [];
         let index = 0;
-        for (const forderName in rootFolderArray) {
-            let rootFolder = rootFolderArray[forderName];
+        for (const rootFolder of rootFolderArray) {
             jsonObj["configs"][index] = {"path": rootFolder, "launch.json": {}};
             // jsonObj["configs"][index]["path"] = rootFolder;
             // jsonObj["configs"][index]["launch.json"] = new Object(); 
@@ -134,21 +126,6 @@ export class VisualSetting {
             case 'adb_reverse':
                 this.processADBReverse(messageObj);
                 break;
-            case 'on_off_analyzer':
-                this.on_off_analyzer(messageObj);
-                break;
-            case 'preAnalysisCpp':
-                if(!messageObj.path || messageObj.path.trim() == ''){
-                    DebugLogger.showTips("C++ 文件分析失败，传入路径为空!",2);
-                }else{
-                    if (!fs.existsSync(messageObj.path.trim())) {
-                        DebugLogger.showTips("输入了不存在的路径!", 2);
-                        return;
-                    }
-
-                    Tools.client.sendNotification('preAnalysisCpp', message.webInfo);
-                }
-                break;
             case 'clearPreProcessFile':
                 //清除文件夹
                 let removePath = messageObj.rootFolder + "/.vscode/LuaPanda/";
@@ -159,30 +136,6 @@ export class VisualSetting {
                     DebugLogger.showTips("文件不存在", 2);
                 }
                 break;
-        }
-    }
-
-    private static on_off_analyzer(messageObj) {
-        let userControlBool = messageObj.switch;
-        //读文件判断当前是on或者off，如果文件不存在，按on处理
-        let snippetsPath = Tools.VSCodeExtensionPath + "/res/snippets/snippets.json";
-        let snippetsPathBackup = Tools.VSCodeExtensionPath + "/res/snippets/snippets_backup.json";
-
-        if(!userControlBool){
-            // 用户关闭, 清空snippets
-            fs.writeFileSync(snippetsPath, '');
-            DebugLogger.showTips("您已关闭了代码辅助功能，重启VScode后将不再有代码提示!");
-            return;
-        }
-
-        if(userControlBool){
-            // 用户打开
-            if(fs.existsSync(snippetsPathBackup)){
-                // 读取snippetsPathBackup中的内容，写入snippets
-                fs.writeFileSync(snippetsPath, fs.readFileSync(snippetsPathBackup));
-            }
-            DebugLogger.showTips("您已打开了代码辅助功能，重启VScode后将会启动代码提示!");
-            return;
         }
     }
 

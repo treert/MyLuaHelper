@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 let statusBar: StatusBarItem;
 
 export class OnlinePeople {
-    private timeoutToReqAnn: NodeJS.Timer;
+    private timeoutToReqAnn: NodeJS.Timeout;
 
     public Start(client: LanguageClient) {
         if (!statusBar) {

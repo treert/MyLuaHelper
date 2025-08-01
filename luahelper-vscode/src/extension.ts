@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use strict';
 
 import * as vscode from 'vscode';
@@ -8,21 +9,25 @@ import * as child_process from "child_process";
 import * as Annotator from "./annotator";
 import * as notifications from "./notifications";
 import * as os from 'os';
+import * as mydebuger from './debug/mydebuger';
 //import { LanguageClient, LanguageClientOptions, ServerOptions, StreamInfo } from "vscode-languageclient";
 import { LuaLanguageConfiguration } from './languageConfiguration';
 import { Tools } from './common/tools';
 import { DebugLogger } from './common/logManager';
-import { LuaConfigurationProvider } from './luapandaDebug';
+// import { LuaConfigurationProvider } from './luapandaDebug';
 import { LuaFormatRangeProvider, LuaFormatProvider } from "./luaformat";
-import { OnlinePeople } from './onlinePeople';
+// import { OnlinePeople } from './onlinePeople';
 
 
 import {
     LanguageClient,
     LanguageClientOptions,
+    PositionEncodingKind,
     ServerOptions,
     StreamInfo,
 } from 'vscode-languageclient/node';
+import { StatusBarManager } from './common/statusBarManager';
+import { PathManager } from './common/pathManager';
 
 let luadoc = require('../client/3rd/vscode-lua-doc/extension.js');
 
@@ -31,10 +36,12 @@ const LANGUAGE_ID = 'lua';
 export let savedContext: vscode.ExtensionContext;
 let client: LanguageClient;
 let activeEditor: vscode.TextEditor;
-let onlinePeople = new OnlinePeople();
+// let onlinePeople = new OnlinePeople();
 let progressBar: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
+    Tools.context = context;
+
     let luaDocContext = {
         ViewType: undefined,
         OpenCommand: undefined,
@@ -63,9 +70,9 @@ export function activate(context: vscode.ExtensionContext) {
     savedContext.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(onDidChangeActiveTextEditor, null, savedContext.subscriptions));
 
     // 注册了LuaPanda的调试功能
-    const provider = new LuaConfigurationProvider();
-    savedContext.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('LuaHelper-Debug', provider));
-    savedContext.subscriptions.push(provider);
+    // const provider = new LuaConfigurationProvider();
+    // savedContext.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('LuaHelper-Debug', provider));
+    // savedContext.subscriptions.push(provider);
 
     // 插入快捷拷贝调试文件的命令   
     savedContext.subscriptions.push(vscode.commands.registerCommand("LuaHelper.copyDebugFile", copyDebugFile));
@@ -80,19 +87,37 @@ export function activate(context: vscode.ExtensionContext) {
 
     savedContext.subscriptions.push(vscode.languages.setLanguageConfiguration("lua", new LuaLanguageConfiguration()));
 
+
+    // init log
+    DebugLogger.init();
+    StatusBarManager.init();
+    PathManager.init();
+
     // 公共变量赋值
     let pkg = require(context.extensionPath + "/package.json");
     Tools.adapterVersion = pkg.version;
     Tools.VSCodeExtensionPath = context.extensionPath;
-    // init log
-    DebugLogger.init();
-
-    Tools.SetVSCodeExtensionPath(context.extensionPath);
 
     // left progess bar
     progressBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
 
+    StatusBarManager.ShowMain('💚mylua');
+
+    vscode.workspace.onDidChangeWorkspaceFolders(_event => {
+        // 在工程中增删文件夹的回调
+        console.log('Workspace folder change event received.');
+        if(_event.added.length > 0){
+            PathManager.addOpenedFolder(_event.added);
+        }
+
+        if(_event.removed.length > 0){
+            PathManager.removeOpenedFolder(_event.removed);
+        }
+    });
+
     startServer();
+
+    mydebuger.activate(context);
 }
 
 exports.activate = activate;
@@ -124,6 +149,7 @@ function onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined) {
 export function deactivate() {
     vscode.window.showInformationMessage("deactivate");
     stopServer();
+    mydebuger.deactivate();
 }
 
 async function startServer() {
@@ -144,10 +170,12 @@ async function startServer() {
             vscode.window.showInformationMessage("start luahelper ok, cost time: " + str_cost_time);
         }
         onDidChangeActiveTextEditor(vscode.window.activeTextEditor);
-        onlinePeople.Start(client);
+        // onlinePeople.Start(client);
+
     })
         .catch(reson => {
-            vscode.window.showErrorMessage(`${reson}`, "Try again").then(startServer);
+            vscode.window.showInformationMessage(`start luahelper failed, reason: ${reson}`);
+            // vscode.window.showErrorMessage(`${reson}`, "Try again").then(startServer);
         });
 }
 
@@ -255,6 +283,17 @@ async function doStartServer() {
             IgnoreFileOrDirError: ignoreFileOrDirErrArr,
             RequirePathSeparator: requirePathSeparator,
             EnableReport: enableReportFlag,
+            // 这是 Language Server Protocol 规定在 initialize 请求中客户端发送的 capabilities.general.positionEncodings
+            // 你可以尝试在这里明确声明客户端支持 UTF-32
+            capabilities: {
+                general: {
+                    positionEncodings: [
+                        PositionEncodingKind.UTF16, // 总是优先支持 UTF-16
+                        PositionEncodingKind.UTF32, // 添加 UTF-32
+                        PositionEncodingKind.UTF8,  // 添加 UTF-8
+                    ]
+                }
+            },
         },
         markdown: {
             isTrusted: true,
@@ -291,8 +330,10 @@ async function doStartServer() {
 
         client = new LanguageClient(LANGUAGE_ID, "luahelper plugin for vscode.", serverOptions, clientOptions);
 
-        savedContext.subscriptions.push(client.start());
-        await client.onReady();
+        await client.start();  // 直接 await start() 方法
+        // savedContext.subscriptions.push({ dispose: () => client.stop() }); // 停止时清理
+        // savedContext.subscriptions.push(client.start());
+        // await client.onReady();
     } else {
         let cp: string = "";
         let platform: string = os.platform();
@@ -330,8 +371,10 @@ async function doStartServer() {
         };
 
         client = new LanguageClient(LANGUAGE_ID, "luahelper plugin for vscode.", serverOptions, clientOptions);
-        savedContext.subscriptions.push(client.start());
-        await client.onReady();
+        await client.start();  // 直接 await start() 方法
+        // savedContext.subscriptions.push({ dispose: () => client.stop() }); // 停止时清理
+        // savedContext.subscriptions.push(client.start());
+        // await client.onReady();
     }
 
     client.onNotification("luahelper/progressReport", (d: notifications.IProgressReport) => {
@@ -346,7 +389,7 @@ async function doStartServer() {
 }
 
 function stopServer() {
-    if (client) {
+    if (client && client.isRunning()) {
         client.stop();
     }
 }

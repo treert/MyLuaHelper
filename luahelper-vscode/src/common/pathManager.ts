@@ -1,6 +1,6 @@
+import { WorkspaceFolder,workspace } from 'vscode';
 import { DebugLogger } from './logManager';
 import { Tools } from './tools';
-import { isArray } from 'util';
 import * as vscode from 'vscode';
 
 let pathReader = require('path-reader');
@@ -14,13 +14,41 @@ export class PathManager {
     public LuaPandaPath;   // 用户工程中luapanda.lua文件所在的路径，它在调试器启动时赋值。但也可能工程中不存在luapanda文件导致路径为空
     public CWD;
     public rootFolder;
-    public static rootFolderArray = {}; // name uri
+    public static rootFolderArray = []; // name uri
     private consoleLog;
     private luaDebugInstance;
     public constructor(_luaDebugInstance, _consoleLog){
         this.luaDebugInstance = _luaDebugInstance;
         this.consoleLog = _consoleLog;
     }
+
+    public static init() {
+        this.rootFolderArray = [];
+        if (workspace.workspaceFolders) {
+            this.addOpenedFolder(workspace.workspaceFolders);
+        }
+    }
+    public static addOpenedFolder(newFolders:readonly WorkspaceFolder[]){
+        let rootFolders = PathManager.rootFolderArray;
+        for (const folder of newFolders) {
+            // 测试不会出现重复添加的情况
+            rootFolders.push(folder.uri.fsPath);
+            // rootFolders.push(Tools.uriToPath(folder.uri));
+        }
+    }
+
+    public static removeOpenedFolder(beDelFolders:readonly WorkspaceFolder[]){
+        let rootFolders = PathManager.rootFolderArray;
+        for (const folder of beDelFolders) {
+            for(let idx =0; idx < rootFolders.length; idx++ ){
+                if (folder.uri.fsPath === rootFolders[idx]) {
+                    rootFolders.splice(idx , 1);
+                    break;
+                }
+            }
+        }
+    }
+
 
     // 建立/刷新 工程下文件名-路径Map
     public rebuildWorkspaceNamePathMap(rootPath : string){
@@ -40,7 +68,7 @@ export class PathManager {
             let fileNameKey = nameExtObject['name']; // key是文件名，不包含路径和文件后缀
             if(_fileNameToPathMap[fileNameKey]){
                 //存在同名文件
-                if(isArray(_fileNameToPathMap[fileNameKey])){
+                if(Array.isArray(_fileNameToPathMap[fileNameKey])){
                     _fileNameToPathMap[fileNameKey].push(formatedPath);
                 }else if(typeof _fileNameToPathMap[fileNameKey] === "string"){
                     //冲突, 对应的key已有值（存在同名文件), 使用数组保存数据
@@ -59,7 +87,7 @@ export class PathManager {
             // 显示进度
             let processingRate = Math.floor( processingFileIdx / workspaceFileCount * 100 );
             let completePath = '';
-            if(isArray(_fileNameToPathMap[fileNameKey])){
+            if(Array.isArray(_fileNameToPathMap[fileNameKey])){
                 completePath = _fileNameToPathMap[fileNameKey][_fileNameToPathMap[fileNameKey].length-1];
             }else if(typeof _fileNameToPathMap[fileNameKey] === "string"){
                 completePath = _fileNameToPathMap[fileNameKey];
@@ -86,7 +114,7 @@ export class PathManager {
         let sameNameFileStr;
         for (const nameKey in this.fileNameToPathMap) {
             let completePath = this.fileNameToPathMap[nameKey]
-            if(isArray(completePath)){
+            if(Array.isArray(completePath)){
                 //初始化语句
                 if(sameNameFileStr === undefined){
                     sameNameFileStr = "\nVSCode打开工程中存在以下同名lua文件: \n";
@@ -138,7 +166,7 @@ export class PathManager {
         }
 
         if(fullPath){
-            if(isArray(fullPath)){
+            if(Array.isArray(fullPath)){
                 // 存在同名文件
                 if(oPath){
                     return this.checkRightPath( shortPath , oPath , fullPath);

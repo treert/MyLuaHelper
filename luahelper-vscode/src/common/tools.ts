@@ -1,36 +1,27 @@
 import * as vscode from 'vscode';
 import * as fs from "fs";
-//import URI from 'vscode-uri';
+import URI from 'vscode-uri';
 let path = require("path");
 
 export class Tools {
+    public static context: vscode.ExtensionContext;
+
     public static extMap;  // 可处理的文件后缀列表
-    public static adapterVersion: string;  //赋值放在了插件初始化时
-    public static VSCodeExtensionPath: string = "";  // VSCode插件所在路径，插件初始化时就会被赋值.
+    public static adapterVersion;  //赋值放在了插件初始化时
+    public static VSCodeExtensionPath;  // VSCode插件所在路径，插件初始化时就会被赋值.
     public static client;
     public static developmentMode = false;
-
 
     // 路径相关函数
     // 获取扩展中预置的lua文件位置
     public static getLuaPathInExtension() : string{
-        let luaPathInVSCodeExtension = this.VSCodeExtensionPath + "/debugger/LuaPanda.lua";
+        let luaPathInVSCodeExtension = this.VSCodeExtensionPath + "/Debugger/LuaPanda.lua";
         return luaPathInVSCodeExtension;
-    }
-
-    public static SetVSCodeExtensionPath(str:string) {
-        this.VSCodeExtensionPath = str;
     }
 
     // 获取扩展中预置的lua文件位置
     public static getClibPathInExtension() : string{
-        let ClibPathInVSCodeExtension = this.VSCodeExtensionPath + "/debugger/debugger_lib/plugins/";
-        return ClibPathInVSCodeExtension;
-    }
-
-    // 
-    public static GetClibPathStr(str:string) : string{
-        let ClibPathInVSCodeExtension = str + "/debugger/debugger_lib/plugins/";
+        let ClibPathInVSCodeExtension = this.VSCodeExtensionPath + "/Debugger/debugger_lib/plugins/";
         return ClibPathInVSCodeExtension;
     }
 
@@ -178,9 +169,9 @@ export class Tools {
     }
 
     // uri string -> path
-    // public static uriToPath(uri: string): string {
-    //     let pathStr = URI.parse(uri).fsPath;
-    //     return pathStr;
-    // }
+    public static uriToPath(uri: string): string {
+        let pathStr = URI.parse(uri).fsPath;
+        return pathStr;
+    }
 
 }
