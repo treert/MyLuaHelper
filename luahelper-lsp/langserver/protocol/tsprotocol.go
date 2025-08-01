@@ -2505,6 +2505,18 @@ type InnerInitializeParams struct {
  */
 type InnerServerCapabilities struct {
 	/**
+	* The position encoding the server picked from the encodings offered
+	* by the client via the client capability `general.positionEncodings`.
+	*
+	* If the client didn't provide any position encodings the only valid
+	* value that a server can return is 'utf-16'.
+	*
+	* If omitted it defaults to 'utf-16'.
+	*
+	* @since 3.17.0
+	 */
+	PositionEncoding string `json:"positionEncoding,omitempty"`
+	/**
 	 * Defines how text documents are synced. Is either a detailed structure defining each notification or
 	 * for backwards compatibility the TextDocumentSyncKind number.
 	 */
@@ -2808,9 +2820,9 @@ type MarkdownClientCapabilities struct {
  */
 //type MarkedString = string /*string | { language: string; value: string }*/
 
-type MarkedString struct{ 
+type MarkedString struct {
 	Language string `json:"language"`
-	Value string `json:"value"`
+	Value    string `json:"value"`
 }
 
 /**
@@ -3584,7 +3596,7 @@ type SemanticTokensWorkspaceClientCapabilities struct {
 
 type ServerCapabilities = struct {
 	InnerServerCapabilities
-	WorkspaceFoldersServerCapabilities
+	// WorkspaceFoldersServerCapabilities
 }
 
 type SetTraceParams struct {

@@ -103,6 +103,9 @@ func (l *LspServer) Initialize(ctx context.Context, vs InitializeParams) (lsp.In
 	return lsp.InitializeResult{
 		Capabilities: lsp.ServerCapabilities{
 			InnerServerCapabilities: lsp.InnerServerCapabilities{
+				// vscode 目前只支持 UTF-16。原因大概是：vscode 是基于 ts 实现，ts的字符串是 UTF-16的
+				// 现在的插件实现有问题，实际只支持 UTF-16 的基本平面，超出了会出问题。
+				// PositionEncoding: "utf-32",
 				TextDocumentSync: &lsp.TextDocumentSyncOptions{
 					OpenClose: true,
 					Change:    lsp.Incremental,
