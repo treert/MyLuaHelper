@@ -4,8 +4,8 @@ import { Tools } from './tools';
 
 export class StatusBarManager {
 
-    private static MemStateBar:StatusBarItem;
-    private static MainBar:StatusBarItem;
+    private static MemStateBar: StatusBarItem;
+    private static MainBar: StatusBarItem;
 
     public static init() {
         this.MemStateBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5.0);
@@ -13,7 +13,7 @@ export class StatusBarManager {
         this.MemStateBar.command = 'mylua.LuaGarbageCollect';
 
 
-        let bar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left,7);
+        let bar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 7);
         bar.tooltip = 'mylua tip';
         bar.text = "💚mylua";
         bar.command = 'mylua.status.bar.click';
@@ -29,13 +29,22 @@ export class StatusBarManager {
         this.MemStateBar.text = String(num) + "KB";
         this.MemStateBar.show();
     }
-    
-    public static ShowMain(message: string) {
+
+    public static ShowMain(message: string, hideTime = 3000) {
         if (Tools.context.extensionMode !== vscode.ExtensionMode.Production) {
             message += ` ${Tools.context.extensionMode}`;
         }
         this.MainBar.text = message;
         this.MainBar.show();
+        if (hideTime > 0) {
+            setTimeout(() => {
+                this.HideMain();
+            }, hideTime);
+        }
+    }
+
+    public static HideMain() {
+        this.MainBar.hide();
     }
 
     //按钮恢复到初始状态

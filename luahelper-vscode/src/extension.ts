@@ -37,7 +37,6 @@ export let savedContext: vscode.ExtensionContext;
 let client: LanguageClient;
 let activeEditor: vscode.TextEditor;
 // let onlinePeople = new OnlinePeople();
-let progressBar: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
     Tools.context = context;
@@ -98,19 +97,16 @@ export function activate(context: vscode.ExtensionContext) {
     Tools.adapterVersion = pkg.version;
     Tools.VSCodeExtensionPath = context.extensionPath;
 
-    // left progess bar
-    progressBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-
     StatusBarManager.ShowMain('💚mylua');
 
     vscode.workspace.onDidChangeWorkspaceFolders(_event => {
         // 在工程中增删文件夹的回调
         console.log('Workspace folder change event received.');
-        if(_event.added.length > 0){
+        if (_event.added.length > 0) {
             PathManager.addOpenedFolder(_event.added);
         }
 
-        if(_event.removed.length > 0){
+        if (_event.removed.length > 0) {
             PathManager.removeOpenedFolder(_event.removed);
         }
     });
@@ -304,7 +300,7 @@ async function doStartServer() {
     if (lspStr !== "cmd rpc") {
         DEBUG_MODE = true;
     }
-    
+
     // 调试模式，通过socket链接lsp后台程序
     if (DEBUG_MODE) {
         const connectionInfo = {
@@ -378,13 +374,7 @@ async function doStartServer() {
     }
 
     client.onNotification("luahelper/progressReport", (d: notifications.IProgressReport) => {
-        progressBar.show();
-        progressBar.text = d.text;
-        if (d.state === 2) {
-            setTimeout(() => {
-                progressBar.hide();
-            }, 3000);
-        }
+        StatusBarManager.ShowMain(d.text, d.state === 2 ? 3000 : 0);
     });
 }
 
