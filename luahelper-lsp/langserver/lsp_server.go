@@ -123,6 +123,7 @@ func CreateServer() *jrpc2.Server {
 		AllowPush:   true,
 		Concurrency: 4,
 		Logger:      log.LspLog,
+		RPCLog:      log.RPCLogger{},
 	})
 
 	return lspServer.server

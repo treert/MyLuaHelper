@@ -91,9 +91,8 @@ func (l *Lexer) SkipFirstLineComment() {
 		return
 	}
 
-	if len(l.chunk) >= 3 && l.chunk[0] == 239 && l.chunk[1] == 187 && l.chunk[2] == 191 {
-		l.chunk = l.chunk[3:]
-	}
+	// 去掉BOM头
+	l.chunk = strings.TrimPrefix(l.chunk, "\xEF\xBB\xBF")
 
 	if len(l.chunk) < 1 {
 		return

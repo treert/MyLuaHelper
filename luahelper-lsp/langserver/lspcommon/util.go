@@ -9,6 +9,19 @@ import (
 	lsp "luahelper-lsp/langserver/protocol"
 )
 
+// 泛型函数：移除切片开头的指定前缀（如果匹配）
+func TrimPrefix[T comparable](slice, prefix []T) []T {
+	if len(prefix) > len(slice) {
+		return slice // 前缀比切片长，直接返回原切片
+	}
+	for i := range prefix {
+		if slice[i] != prefix[i] {
+			return slice // 前缀不匹配，返回原切片
+		}
+	}
+	return slice[len(prefix):] // 匹配成功，移除前缀
+}
+
 // LocToRange luacheck里面的LocStruct转换为Range结构
 func LocToRange(loc *lexer.Location) lsp.Range {
 	return lsp.Range{

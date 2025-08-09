@@ -1,10 +1,13 @@
 package log
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"os"
+
+	"github.com/yinfei8/jrpc2"
 )
 
 var (
@@ -16,6 +19,9 @@ var (
 type logger = func(string, ...interface{})
 
 var GFileLog *os.File = nil
+
+var _rpc_log_file *os.File = nil
+var _rpc_log *log.Logger = nil
 
 // logFlag 为true表示开启日志
 func InitLog(logFlag bool) {
@@ -29,10 +35,14 @@ func InitLog(logFlag bool) {
 
 	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Llongfile)
 	fileLog, err := os.OpenFile("log.txt", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
-
 	if err != nil {
 		log.Fatalln("failed to open log file:", err)
 		return
+	}
+
+	_rpc_log_file, _ = os.OpenFile("rpc.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+	if _rpc_log_file != nil {
+		_rpc_log = log.New(io.MultiWriter(_rpc_log_file), "", log.Ldate|log.Lmicroseconds)
 	}
 
 	debugLog = log.New(io.MultiWriter(fileLog), "Debug ", log.Ldate|log.Lmicroseconds|log.Lshortfile)
@@ -63,4 +73,23 @@ func Error(format string, v ...interface{}) {
 	}
 
 	errorLog.Output(2, fmt.Sprintf(format, v...))
+}
+
+type RPCLogger struct {
+}
+
+func (RPCLogger) LogRequest(ctx context.Context, req *jrpc2.Request) {
+	if _rpc_log != nil {
+		_rpc_log.Printf("id: %s, request: %s, params: %s", req.ID(), req.Method(), req.ParamString())
+	}
+}
+func (RPCLogger) LogResponse(ctx context.Context, rsp *jrpc2.Response) {
+	if _rpc_log != nil {
+		if rsp.Error() != nil {
+			_rpc_log.Printf("response: id: %s, error: %s, result: %s", rsp.ID(), rsp.Error().Error(), rsp.ResultString())
+			return
+		} else {
+			_rpc_log.Printf("response: id: %s, result: %s", rsp.ID(), rsp.ResultString())
+		}
+	}
 }
