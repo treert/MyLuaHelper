@@ -8,8 +8,7 @@ import (
 	"luahelper-lsp/langserver/check/compiler/parser"
 	"luahelper-lsp/langserver/check/results"
 	"luahelper-lsp/langserver/log"
-	"reflect"
-	"runtime"
+	"luahelper-lsp/my"
 	"time"
 )
 
@@ -24,12 +23,13 @@ type FirstWorkChan struct {
 }
 
 // analysisFirstLuaFile 进行第一段的分析，主要进行词法和语法的分析，然后构造函数和全局变量信息
-// content 为具体传入的内容, 若为nil表示没有传入内容，需要从文件中读取
-// saveFlag 为是否cache住文件的内容
-// realTimeFlag 实时分析标记，当实时敲入代码时候，该字段为true，不进行一些检查
-// handleResult 返回0表示成功， 1表示读文件失败，2表示构造AST失败
-// changeFlag 表示内容是否有改动
-// beforeStruct 表示changeFlag如果没有改动，返回之前的FileStruct指针
+//
+//	content 为具体传入的内容, 若为nil表示没有传入内容，需要从文件中读取
+//	saveFlag 为是否cache住文件的内容
+//	realTimeFlag 实时分析标记，当实时敲入代码时候，该字段为true，不进行一些检查
+//	handleResult 返回0表示成功， 1表示读文件失败，2表示构造AST失败
+//	changeFlag 表示内容是否有改动
+//	beforeStruct 表示changeFlag如果没有改动，返回之前的FileStruct指针
 func (allProject *AllProject) analysisFirstLuaFile(f *results.FileStruct, luaFile string, content []byte,
 	saveFlag bool, realTimeFlag bool) (handleResult results.FileHandleResult, changeFlag bool, beforeStruct *results.FileStruct) {
 	dirManager := common.GConfig.GetDirManager()
@@ -117,36 +117,6 @@ func (allProject *AllProject) analysisFirstLuaFile(f *results.FileStruct, luaFil
 	return handleResult, true, nil
 }
 
-// GoRoutineFirstWork 第一轮分析lua的协程，接受主协程发送需要分析的文件
-func GoRoutineFirstWork(ch chan FirstWorkChan) {
-	for {
-		request := <-ch
-		if !request.sendRunFlag {
-			// 协程停止运行
-			break
-		}
-
-		fileStruct := results.CreateFileStruct(request.strFile)
-		handleResult, changeFlag, beforeFileStruct := request.allProject.analysisFirstLuaFile(fileStruct,
-			request.strFile, nil, request.saveContentFlag, false)
-
-		// 如果没有改动，用之前的FileStruct
-		if !changeFlag {
-			beforeFileStruct.HandleResult = handleResult
-		}
-		fileStruct.HandleResult = handleResult
-
-		chanResult := FirstWorkChan{
-			strFile:          request.strFile,
-			returnFileStruct: fileStruct,
-			returnChangeFlag: changeFlag,
-			saveContentFlag:  request.saveContentFlag,
-		}
-
-		ch <- chanResult
-	}
-}
-
 func (a *AllProject) recvWorkChann(chanResult FirstWorkChan) (changeFlag bool) {
 	// 第一阶段的结果插入进去
 	changeFlag = chanResult.returnChangeFlag
@@ -178,76 +148,43 @@ func (a *AllProject) firstCreateAndTraverseAst(filesList []string, saveContentFl
 		return false
 	}
 
-	// 是否有文件变化，重新进行了分析
-	changeFlag = false
-	//获取本机核心数
-	corNum := runtime.NumCPU() + 2
-	if len(filesList) < corNum {
-		corNum = len(filesList)
-	}
-	// 协程组的通道
-	chs := make([]chan FirstWorkChan, corNum)
-	//创建反射对象集合，用于监听
-	selectCase := make([]reflect.SelectCase, corNum)
-
-	for i := 0; i < corNum; i++ {
-		chs[i] = make(chan FirstWorkChan)
-		selectCase[i].Dir = reflect.SelectRecv
-		selectCase[i].Chan = reflect.ValueOf(chs[i])
-		go GoRoutineFirstWork(chs[i])
-	}
-
-	//初始化协程
-	for i := 0; i < corNum; i++ {
-		chanRequest := FirstWorkChan{
+	tasks := make([]FirstWorkChan, len(filesList))
+	for i, strFile := range filesList {
+		tasks[i] = FirstWorkChan{
 			sendRunFlag:     true,
-			strFile:         filesList[i],
+			strFile:         strFile,
 			allProject:      a,
 			saveContentFlag: saveContentFlag,
 		}
-		chs[i] <- chanRequest
 	}
 
-	//reflect接收数据
-	taskDone := 0
-	for recvNum := 0; recvNum < len(filesList); {
-		chosen, recv, recvOK := reflect.Select(selectCase)
-		if !recvOK {
-			log.Error("ch%d error\n", chosen)
-			//确保循环退出
-			recvNum++
-			continue
-		}
+	// 第一轮分析lua
+	tasks = my.RunAllTask(tasks, func(request FirstWorkChan) FirstWorkChan {
+		fileStruct := results.CreateFileStruct(request.strFile)
+		handleResult, changeFlag, beforeFileStruct := request.allProject.analysisFirstLuaFile(fileStruct,
+			request.strFile, nil, request.saveContentFlag, false)
 
-		if a.recvWorkChann(recv.Interface().(FirstWorkChan)) {
+		// 如果没有改动，用之前的FileStruct
+		if !changeFlag {
+			beforeFileStruct.HandleResult = handleResult
+		}
+		fileStruct.HandleResult = handleResult
+
+		result := FirstWorkChan{
+			strFile:          request.strFile,
+			returnFileStruct: fileStruct,
+			returnChangeFlag: changeFlag,
+			saveContentFlag:  request.saveContentFlag,
+		}
+		return result
+	}, 0)
+
+	for _, chanResult := range tasks {
+		if a.recvWorkChann(chanResult) {
 			changeFlag = true
 		}
+	}
 
-		if recvNum+corNum < len(filesList) {
-			chanRequest := FirstWorkChan{
-				sendRunFlag:     true,
-				strFile:         filesList[recvNum+corNum],
-				allProject:      a,
-				saveContentFlag: saveContentFlag,
-			}
-			chs[chosen] <- chanRequest
-		} else {
-			chanRequest := FirstWorkChan{
-				sendRunFlag: false,
-			}
-			chs[chosen] <- chanRequest
-		}
-		taskDone++
-		//确保循环退出
-		recvNum++
-	}
-	if taskDone == len(filesList)-1 {
-		log.Debug("all files has send work...")
-	}
-	//关闭所有的子协程
-	for i := 0; i < corNum; i++ {
-		close(chs[i])
-	}
 	return changeFlag
 }
 

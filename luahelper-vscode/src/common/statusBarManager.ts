@@ -30,21 +30,12 @@ export class StatusBarManager {
         this.MemStateBar.show();
     }
 
-    public static ShowMain(message: string, hideTime = 3000) {
+    public static ShowMain(message: string) {
         if (Tools.context.extensionMode !== vscode.ExtensionMode.Production) {
             message += ` ${Tools.context.extensionMode}`;
         }
         this.MainBar.text = message;
         this.MainBar.show();
-        if (hideTime > 0) {
-            setTimeout(() => {
-                this.HideMain();
-            }, hideTime);
-        }
-    }
-
-    public static HideMain() {
-        this.MainBar.hide();
     }
 
     //按钮恢复到初始状态

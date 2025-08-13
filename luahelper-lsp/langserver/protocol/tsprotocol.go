@@ -2570,11 +2570,11 @@ type InnerServerCapabilities struct {
 	/**
 	 * The server provides code lens.
 	 */
-	CodeLensProvider CodeLensOptions `json:"codeLensProvider,omitempty"`
+	CodeLensProvider *CodeLensOptions `json:"codeLensProvider,omitempty"`
 	/**
 	 * The server provides document link support.
 	 */
-	DocumentLinkProvider DocumentLinkOptions `json:"documentLinkProvider,omitempty"`
+	DocumentLinkProvider *DocumentLinkOptions `json:"documentLinkProvider,omitempty"`
 	/**
 	 * The server provides color provider support.
 	 */

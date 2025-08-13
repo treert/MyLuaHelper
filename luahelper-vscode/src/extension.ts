@@ -374,7 +374,9 @@ async function doStartServer() {
     }
 
     client.onNotification("luahelper/progressReport", (d: notifications.IProgressReport) => {
-        StatusBarManager.ShowMain(d.text, d.state === 2 ? 3000 : 0);
+        StatusBarManager.ShowMain(d.text
+            // , d.state === 2 ? 3000 : 0
+        );
     });
 }
 

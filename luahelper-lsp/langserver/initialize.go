@@ -128,12 +128,12 @@ func (l *LspServer) Initialize(ctx context.Context, vs InitializeParams) (lsp.In
 				SignatureHelpProvider: lsp.SignatureHelpOptions{
 					TriggerCharacters: []string{"(", ","},
 				},
-				CodeLensProvider: lsp.CodeLensOptions{
-					ResolveProvider: false,
-				},
-				DocumentLinkProvider: lsp.DocumentLinkOptions{
-					ResolveProvider: false,
-				},
+				// CodeLensProvider: &lsp.CodeLensOptions{
+				// 	ResolveProvider: false,
+				// },
+				// DocumentLinkProvider: &lsp.DocumentLinkOptions{
+				// 	ResolveProvider: false,
+				// },
 				RenameProvider:            true,
 				DocumentHighlightProvider: true,
 				Workspace: lsp.WorkspaceGn{
